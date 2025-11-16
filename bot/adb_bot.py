@@ -11,10 +11,22 @@ from typing import Optional, Tuple
 import cv2
 import numpy as np
 from PIL import Image
+import shutil
 
 
 def run_adb(cmd: list, capture_output=True) -> subprocess.CompletedProcess:
-    full = ["adb"] + cmd
+    # Allow overriding adb path with ADB_PATH env var, otherwise look in PATH
+    adb_exe = os.environ.get("ADB_PATH") or shutil.which("adb")
+    if not adb_exe:
+        print("Error: 'adb' not found. Please install Android Platform Tools and ensure 'adb' is on your PATH or set ADB_PATH environment variable.")
+        print("Quick steps (Windows PowerShell):")
+        print("  1) Download platform-tools from https://developer.android.com/studio/releases/platform-tools")
+        print("  2) Unzip and add the folder (containing adb.exe) to your PATH, e.g:")
+        print("       setx PATH \"$env:PATH;C:\\path\\to\\platform-tools\"")
+        print("     Or set ADB_PATH for this session:")
+        print("       $env:ADB_PATH='C:\\path\\to\\platform-tools\\adb.exe'")
+        sys.exit(1)
+    full = [adb_exe] + cmd
     return subprocess.run(full, stdout=subprocess.PIPE if capture_output else None, stderr=subprocess.PIPE)
 
 
